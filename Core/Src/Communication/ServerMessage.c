@@ -114,11 +114,13 @@ uint16_t Serialize_SSnodedata(uint8_t* Serial_buff, DATA_t dataType)
 			Serial_buff[buff_len++] = current->SSnode.sensorMode;
 			break;
 		case DATA_NETWREADY:
-			if (current->SSnode.sensorMode == SLEEP) 	{
-				current->SSnode.Sensor_state = SENSOR_DEACTIVE;
-			}
+//			if (current->SSnode.sensorMode == SLEEP) 	{
+//				current->SSnode.Sensor_state = SENSOR_DEACTIVE;
+//			}
 			Serial_buff[buff_len++] = current->SSnode.SSnode_ID;
-			Serial_buff[buff_len++]= current->SSnode.Sensor_state;
+			Serial_buff[buff_len++]= current->SSnode.Ready;
+			current->SSnode.Ready = 0;
+			myStation.prepare_flag = 0;
 			break;
 		case DATA_CALIB:
 			if (current->SSnode.dataCalibAvailable)	{
@@ -390,7 +392,7 @@ void getDataStatus(uint8_t *Msg, uint16_t Msglen)
 	numbofActiveSensor = Msg[datapos++];
 	numbofFailSensor = Msg[datapos++];
 	memset(mySIM.sms.GetStatus.data, 0, SMS_DATA_MAXLEN);
-	uint16_t len = sprintf((char*)mySIM.sms.GetStatus.data,"%s: %d,%s: %d,%s: %d,%s: %d.",
+	uint16_t len = sprintf((char*)mySIM.sms.GetStatus.data,"%s %d,%s %d,%s %d,%s %d.",
 			USER_MSG_HEADER_NUMBOF_ACT_STATION, numbofActiveStation,
 			USER_MSG_HEADER_NUMBOF_FAIL_STATION, numbofFailStation,
 			USER_MSG_HEADER_NUMBOF_ACT_SENSOR, numbofActiveSensor,

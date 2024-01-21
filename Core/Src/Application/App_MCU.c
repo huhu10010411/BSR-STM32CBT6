@@ -24,6 +24,9 @@
 uint32_t tick = 0;
 uint32_t NWRDtick = 0;
 uint32_t tickSendDataCalib = 0;
+uint8_t wakeflag = 0;
+//uint32_t tickDoneCalib = 0;
+//uint8_t flagcalib = 0;
 //uint8_t wake_sensorflag = 0 ;
 
 void initApp_MCU()
@@ -49,12 +52,16 @@ void processApp_MCU(void)
 			triggerTaskflag(TASK_GET_GPS_TIME, FLAG_EN);
 
 			// Send WAKEUP command for Sensor
-			Lora_Setmode(WAKE , 0);
+			Lora_Setmode(WAKE , 1);
+//			wakeflag = 1;
+//			if ( Lora_Setmode(WAKE , 1) )	{
+//				wakeflag = 0;
+//			}
 
 			// This flag for check Sensor ready
 			myStation.prepare_flag = 1;
 
-			// Start timer 100s
+			// Start timer 200s
 			NWRDtick = HAL_GetTick();
 
 			// Trigger send NETWORK READY message to Server
@@ -62,8 +69,10 @@ void processApp_MCU(void)
 
 			triggerTaskflag(TASK_PREPARE_CALIB, FLAG_DIS);
 		}
+
+//		if (wakeflag && Lora)
 		// Send Netwok Ready to Server after 100s since received Prepare calib command
-		if ((HAL_GetTick() - NWRDtick > 100000) && checkTaskflag(TASK_SEND_NWREADY))	{
+		if ((HAL_GetTick() - NWRDtick > 200000) && checkTaskflag(TASK_SEND_NWREADY))	{
 			sendData2Server(DATA_NETWREADY);
 		}
 
@@ -71,6 +80,9 @@ void processApp_MCU(void)
 
 			// Set display mode
 			displayCalibFlag = 1;
+
+//			tickDoneCalib = HAL_GetTick();
+//			flagcalib = 1;
 
 			// Trigger task Send DATA CALIBRATION to Server
 			triggerTaskflag(TASK_SEND_DATACALIB, FLAG_EN);
@@ -81,9 +93,14 @@ void processApp_MCU(void)
 		// Send data calib to Server after TIMEOUT wait for Data Calib from Sensors
 		if ( (HAL_GetTick() - tickSendDataCalib >= TIMEOUT_WAIT_DATACALIB) && checkTaskflag(TASK_SEND_CALIB))	{
 			sendData2Server(DATA_CALIB);
-			// Set mode of Sensor to Sleep
-			setSensorMode(SLEEP);
+
 		}
+//
+//		if (HAL_GetTick() - tickDoneCalib >= 200000 && flagcalib)	{
+//			// Set mode of Sensor to Sleep
+//			setSensorMode(SLEEP);
+//			flagcalib =  0;
+//		}
 
 		// Send data period
 		if (HAL_GetTick() - tick >= UPDATE_DATA_PERIOD *1000)	{

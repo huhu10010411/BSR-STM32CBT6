@@ -36,6 +36,11 @@ uint8_t SMSreturn (SMS_CMD_t smsCMD)
 		break;
 	}
 	if (tmpSMScmd == NULL) 	return 0;
+//	uint8_t msglen = tmpSMScmd->datalength;
+//	uint8_t returnmsg[msglen+1];
+//	uint8_t phonenumb[13];
+//	strcpy()
+//	strcpy(returnmsg,tmpSMScmd->data);
 	SMS_sendMsg(tmpSMScmd->data, tmpSMScmd->datalength, tmpSMScmd->phonenumb);
 	return 1;
 }

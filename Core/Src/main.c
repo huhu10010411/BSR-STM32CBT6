@@ -55,6 +55,8 @@
 
 #define FLASH_ID_ADDR  0x0801FC00
 
+#define DELAY_TIME_OFF_MBA_CALIB		3
+#define DELAY_TIME_ON_MBA_CALIB			4
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -88,6 +90,9 @@ uint32_t pretick = 0;
 
 uint32_t turnonMBAtick = 0;
 uint8_t turnonMBAflag = 0;
+
+uint32_t turnOFFMBAtick = 0;
+uint8_t turnOFFMBAflag = 0;
 
 uint8_t flag = 0;
 
@@ -132,46 +137,48 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 		if(!sync_flag)	{
 
-			if (flag == 0)	{
+//			if (flag == 0)	{
 
 				// Set Mode Measure for Sensor node
 				Lora_Setmode(MEASURE, 0);
 
 				DS3231_ClearAlarm1();
 				// Set alarm for Turn OFF MBA
-				DS3231_SetAlarm1(ALARM_MODE_HOUR_MIN_SEC_MATCHED, 0, myStation.calibTime.hour, myStation.calibTime.min, myStation.calibTime.sec + 3);
+//				DS3231_SetAlarm1(ALARM_MODE_HOUR_MIN_SEC_MATCHED, 0, myStation.calibTime.hour, myStation.calibTime.min, myStation.calibTime.sec + DELAY_TIME_OFF_MBA_CALIB);
+//				HAL_TIM_Base_Start_IT(&htim3);
 
-				flag = 1;
-			}
-			else if (flag == 1)	{
+				turnOFFMBAtick = HAL_GetTick();
+				turnOFFMBAflag = 1;
+//
+//				flag = 1;
+//			}
+//			else if (flag == 1)	{
 
-				//Turn OFF MBA
-				myStation.MBAstate = switchContactor(MBA_OFF);
+//				//Turn ON MBA
+//				myStation.MBAstate = switchContactor(MBA_ON);
+//
+//				DS3231_ClearAlarm1();
+//
+//				flag = 0;
 
-				DS3231_ClearAlarm1();
-				DS3231_SetAlarm1(ALARM_MODE_HOUR_MIN_SEC_MATCHED, 0, myStation.calibTime.hour, myStation.calibTime.min, myStation.calibTime.sec + 4);
-				triggerTaskflag(TASK_START_CALIB, FLAG_EN);
-
-				// Display after OFF Contactor
-				displayCalibFlag = 0;
-				displayAfterSwitchoff = 1;
-
-				flag = 2;
-			}
-			else {
-				//Turn ON MBA
-				myStation.MBAstate = switchContactor(MBA_ON);
-
-				DS3231_ClearAlarm1();
-
-				flag = 0;
-
-			}
-
+//				//Turn OFF MBA
+//				myStation.MBAstate = switchContactor(MBA_OFF);
+//
+//				DS3231_ClearAlarm1();
+//				DS3231_SetAlarm1(ALARM_MODE_HOUR_MIN_SEC_MATCHED, 0, myStation.calibTime.hour, myStation.calibTime.min, myStation.calibTime.sec + DELAY_TIME_ON_MBA_CALIB);
+//				triggerTaskflag(TASK_START_CALIB, FLAG_EN);
+//
+//				// Display after OFF Contactor
+//				displayCalibFlag = 0;
+//				displayAfterSwitchoff = 1;
+//
+//				flag = 2;
+//			}
 		}
 		else {
 			Lora_Setmode(SLEEP, 0);
 			DS3231_ClearAlarm1();
+			sync_flag = 0;
 		}
 
 	}
@@ -183,6 +190,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		if (GPIO_Pin == BUTTON_MENU_Pin) {
 			// Button Menu handler
 			buttonMENU_handler();
+//			HAL_TIM_Base_Start_IT(&htim3);
 		}
 
 		if (GPIO_Pin == BUTTON_OK_Pin) {
@@ -226,17 +234,28 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	}
 }
 
-//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-//{
-//	if (htim->Instance == &htim3)	{
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+//	if (htim == &htim3)	{
+//
 //		// Turn OFF MBA for Calib
 //		myStation.MBAstate = switchContactor(MBA_OFF);
-//		// Start timer for Turn ON MBA
-//
+//		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 //		// Stop timer Turn OFF
-//		HAL_TIM_Base_Stop_IT(&htim3);
+////		HAL_TIM_Base_Stop_IT(&htim3);
+//
+//		// Start timer for turn ON Contactor again
+////		HAL_TIM_Base_Start_IT(&htim2);
+//
 //	}
-//}
+//	else if (htim == &htim2)	{
+//		// Turn OFF MBA for Calib
+//			myStation.MBAstate = switchContactor(MBA_ON);
+//			HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//			// Stop timer Turn ON
+//			HAL_TIM_Base_Stop_IT(&htim2);
+//	}
+}
 //void setStationMode(Station_Mode_t mode)
 //{
 //	myStation.StMODE = mode;
@@ -284,13 +303,15 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM1_Init();
   MX_ADC1_Init();
+  MX_TIM3_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   SSnode_list =list_create();
 
   myStation.ssNode_list = SSnode_list;
 
   // Get station ID from flash
-//  Flash_Write_NUM(FLASH_PAGE_127, 0x01);
+//  Flash_Write_NUM(FLASH_PAGE_127, 0x03);
   myStation.stID = (uint8_t)Flash_Read_NUM(FLASH_PAGE_127);
 
   /********************Configure MQTT********************************/
@@ -338,17 +359,18 @@ int main(void)
 
 	initApp_SMS();
 
+//	HAL_TIM_Base_Start_IT(&htim3);
 //	triggerTaskflag(TASK_GET_GPS_TIME, FLAG_EN);
 
-    DS3231_GetTime(&myRTC);
-	myRTC.Year = 24;
-	myRTC.Month = 1;
-	myRTC.Date = 19;
-//	myRTC.DaysOfWeek = 3;
-//	myRTC.Hour = 15;
-//	myRTC.Min = 17;
-//	myRTC.Sec = 0;
-	DS3231_SetTime(&myRTC);
+//    DS3231_GetTime(&myRTC);
+//	myRTC.Year = 24;
+//	myRTC.Month = 1;
+//	myRTC.Date = 20;
+//	myRTC.DaysOfWeek = 7;
+//	myRTC.Hour = 23;
+//	myRTC.Min = 59;
+//	myRTC.Sec = 59;
+//	DS3231_SetTime(&myRTC);
 
 //	myStation.calibTime.hour = 1;
 //	myStation.calibTime.min = 40;
@@ -367,8 +389,21 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  //Turn OFF contactor
+	  if (turnOFFMBAflag && (HAL_GetTick() - turnOFFMBAtick >= 10000 ))	{
+		  myStation.MBAstate = switchContactor(MBA_OFF);
+		  turnonMBAtick = HAL_GetTick();
+		  turnOFFMBAflag = 0;
+		  turnonMBAflag = 1;
+	  }
 
-	  if (HAL_GetTick() - getgpstick >= 30000 && !gpsflag)	{
+	  if (turnonMBAflag && (HAL_GetTick() - turnonMBAtick >= 1000))	{
+		  myStation.MBAstate = switchContactor(MBA_ON);
+		  turnonMBAflag = 0;
+	  }
+
+
+	  if (HAL_GetTick() - getgpstick >= 180000 && !gpsflag)	{
 		  gpsflag = 1;
 		  triggerTaskflag(TASK_GET_GPS_TIME, FLAG_EN);
 	  }
@@ -378,6 +413,7 @@ int main(void)
 	  processingApp_MBA_stepmor();
 	  processApp_SMS();
 
+//	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 //	  testSynchronize();
 
 	  HAL_Delay(20);

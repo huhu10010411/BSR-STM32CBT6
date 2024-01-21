@@ -18,6 +18,7 @@
 uint32_t tickconnect =0;
 uint32_t tickreg = 0;
 uint32_t ticksend = 0;
+uint32_t ticksendReady = 0;
 void initApp_MQTT()
 {
 //	myStation = station;
@@ -107,7 +108,8 @@ void processApp_MQTT(void)
 		}
 
 		// Send NETWORK READY message to Server
-		if ( checkTaskflag(TASK_SEND_NWREADY))	{
+		if ( checkTaskflag(TASK_SEND_NWREADY) && (HAL_GetTick()- ticksendReady >= 1000) )	{
+			ticksendReady = HAL_GetTick();
 			sendNWready();
 		}
 

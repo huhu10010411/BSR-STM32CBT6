@@ -44,6 +44,7 @@ void initLora()
 //	__LORA_UART = huart;
 //	__LORA_DMA_UART = hdma;
 	enableReceiveDMAtoIdle_Lora();
+//	Lora_Setmode(SLEEP, 1);
 
 }
 
@@ -157,6 +158,10 @@ void Lora_receive(uint8_t *Msg, uint8_t msglen)
 		switch (flag)	{
 		case 1:
 			newSensor.sensorMode = modevalue;
+			if (myStation.prepare_flag) {
+				if (modevalue == WAKE)
+				newSensor.Ready = 1;
+			}
 			break;
 		case 2:
 			newSensor.V_type = vtype;
@@ -182,6 +187,10 @@ void Lora_receive(uint8_t *Msg, uint8_t msglen)
 
 				case 1:		// Mode
 					current->SSnode.sensorMode = modevalue;
+					if (myStation.prepare_flag) {
+						if (modevalue == WAKE)
+						current->SSnode.Ready = 1;
+					}
 					break;
 
 				case 2:		// Data period
@@ -189,9 +198,7 @@ void Lora_receive(uint8_t *Msg, uint8_t msglen)
 					current->SSnode.V_value = Vperiod;
 					current->SSnode.Battery = vbat;
 
-					if (myStation.prepare_flag) {
-						current->SSnode.Ready = 1;
-					}
+
 
 					break;
 
@@ -239,7 +246,7 @@ void testLora_receive (void)
 {
 //	Lora_Setmode(WAKE,1);
 
-	Lora_Setmode(SLEEP, 1);
+//	Lora_Setmode(SLEEP, 1);
 
 //	uint8_t modemsg [] = {0x01, 0x04, 0x53,0x30, 0x39, 0x31, 0x04, 0x01, 0x00, 0x00, 0xD6};
 //	uint8_t msg[] = { 0x01, 0x04, 0x53, 0x30, 0x39, 0x31, 0x07, 0x02, 0x05, 0xD6, 0x09, 0x02, 0x02, 0xF4, 0x00, 0x64};

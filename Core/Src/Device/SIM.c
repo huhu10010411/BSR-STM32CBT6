@@ -729,9 +729,9 @@ void triggerSMSreturn (SMS_CMD_t smsCMD, SMS_CMD_FLAG_t ENorDIS)
 
 uint8_t SMS_config()
 {
-	if ( SIM_sendCMD((uint8_t*)"AT+CMGF=1", (uint8_t*)"OK", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_SHORT) != SIM_RES_MSG ) return 0;
+	if ( SIM_sendCMD("AT+CMGF=1", (uint8_t*)"OK", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_SHORT) != SIM_RES_MSG ) return 0;
 
-	if ( SIM_sendCMD((uint8_t*)"AT+CSCS=\"GSM\"", (uint8_t*)"OK", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_SHORT) != SIM_RES_MSG)		return 0;
+	if ( SIM_sendCMD("AT+CSCS=\"GSM\"", (uint8_t*)"OK", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_SHORT) != SIM_RES_MSG)		return 0;
 
 	return 1;
 }
@@ -744,7 +744,9 @@ uint8_t SMS_sendMsg(uint8_t *Msg, uint16_t msglen, uint8_t *phonenumber )
 	if ( SIM_sendCMD(SIM_Txbuff, (uint8_t*)">", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_MEDIUM) != SIM_RES_MSG)	return 0;
 
 	Msg[msglen++] = 0x1A;
-	HAL_UART_Transmit(SIM_UART, Msg, msglen, 0xFFFF);
+//	sprintf(SIM_Txbuff, "%s", Msg);
+	memcpy(SIM_Txbuff, Msg, msglen);
+	HAL_UART_Transmit(SIM_UART, SIM_Txbuff, msglen, 0xFFFF);
 	if ( SIM_checkMsg((uint8_t*)"OK", SIM_TIMEOUT_SHORT) != SIM_RES_MSG)	{
 		MarkAsReadData_SIM();
 		return 0;
