@@ -10,6 +10,7 @@
 #include "ServerMessage.h"
 #include "Task.h"
 #include "main.h"
+#include <string.h>
 
 //static SMS_t *mySIM.sms;
 void initApp_SMS()
@@ -36,12 +37,12 @@ uint8_t SMSreturn (SMS_CMD_t smsCMD)
 		break;
 	}
 	if (tmpSMScmd == NULL) 	return 0;
-//	uint8_t msglen = tmpSMScmd->datalength;
-//	uint8_t returnmsg[msglen+1];
-//	uint8_t phonenumb[13];
-//	strcpy()
-//	strcpy(returnmsg,tmpSMScmd->data);
-	SMS_sendMsg(tmpSMScmd->data, tmpSMScmd->datalength, tmpSMScmd->phonenumb);
+	uint8_t msglen = tmpSMScmd->datalength;
+	uint8_t returnmsg[msglen+1];
+	uint8_t phonenumb[13];
+	memcpy((char*)returnmsg, tmpSMScmd->data, msglen);
+	strcpy((char*)phonenumb, (char*)tmpSMScmd->phonenumb);
+	SMS_sendMsg(returnmsg, msglen, phonenumb);
 	return 1;
 }
 void processApp_SMS(void)
