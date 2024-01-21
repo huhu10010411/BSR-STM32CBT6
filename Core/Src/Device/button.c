@@ -126,6 +126,7 @@ void buttonMENU_handler()
 		setClearflag(ENABLE);
 		break;
 	case COUNTDOWN_SW_OFF:
+		// this variable is set at main.c , func: HAL_TIM_PeriodElapsedCallback
 		if (displayAfterSwitchoff)	{
 			myDisplayMode = AFTER_SW_OFF;
 		}
@@ -135,6 +136,7 @@ void buttonMENU_handler()
 		setClearflag(ENABLE);
 		break;
 	case AFTER_SW_OFF:
+		displayAfterSwitchoff = 0;
 		myDisplayMode = MONITOR;
 		setClearflag(ENABLE);
 		break;

@@ -87,7 +87,7 @@ typedef struct {
 	s_list  * ssNode_list;
 	Task_handle_t task;
 	Calibtime_t calibTime;
-
+	Calibtime_t alarmtime;
 }Station_t;
 
 
@@ -103,7 +103,7 @@ extern SMS_t mySMS;
 
 extern uint8_t volatile sync_flag;
 
-#define STATION_T_INIT	{0,  8, 300, 0, 1, 0, NULL, TASK_FLAG_INIT, CALIB_TIME_INIT}
+#define STATION_T_INIT	{0,  8, 300, 0, 1, 0, NULL, TASK_FLAG_INIT, CALIB_TIME_INIT, CALIB_TIME_INIT}
 
 #define ACTIVE		0x01
 #define DEACTIVE	0x02

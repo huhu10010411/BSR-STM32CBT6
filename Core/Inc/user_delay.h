@@ -11,7 +11,7 @@
 /* INCLUDES ------------------------------------------------------------------*/
 #include "stdint.h"
 #include "stm32f1xx_hal.h"
-#include "tim.h"
+//#include "tim.h"
 
 /* MACROS AND DEFINES --------------------------------------------------------*/
 

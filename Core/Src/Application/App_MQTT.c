@@ -114,8 +114,7 @@ void processApp_MQTT(void)
 		}
 
 		// Send DATA CALIB
-		if(dataCalibavailble() && checkTaskflag(TASK_SEND_DATACALIB)  )	{
-
+		if(dataCalibavailble() && checkTaskflag(TASK_SEND_DATACALIB) )	{
 			sendData2Server(DATA_CALIB);
 		}
 

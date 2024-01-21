@@ -30,8 +30,8 @@ void delay_init(void)
 
 void delay_1ms(void)
 {
-	__HAL_TIM_SetCounter(&htim1, 0);
-    while (__HAL_TIM_GetCounter(&htim1)<1);
+//	__HAL_TIM_SetCounter(&htim1, 0);
+//    while (__HAL_TIM_GetCounter(&htim1)<1);
 }
 
 void delay_ms(uint16_t nms)

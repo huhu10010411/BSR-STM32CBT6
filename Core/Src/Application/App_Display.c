@@ -71,6 +71,7 @@ void processingApp_display()
 			Screen_Home_Sync(countdowntime);
 			break;
 		case AFTER_SW_OFF:
+			displayCalibFlag = 0;
 			displayAfterSwitchoff = 0;
 			Screen_Home_Calib(myStation.calibTime.hour, myStation.calibTime.min, myStation.calibTime.sec +3);
 			break;

@@ -559,7 +559,7 @@ void processingComingMsg(uint8_t *Msg, uint16_t Msg_len, uint8_t stID)
 
 					// Set alarm for Calib
 					DS3231_ClearAlarm1();
-					DS3231_SetAlarm1(ALARM_MODE_ALL_MATCHED, tmpRTC.Date, tmpRTC.Hour, tmpRTC.Min, tmpRTC.Sec);
+					DS3231_SetAlarm1(ALARM_MODE_HOUR_MIN_SEC_MATCHED, tmpRTC.Date, tmpRTC.Hour, tmpRTC.Min, tmpRTC.Sec);
 
 
 					break;
@@ -579,11 +579,15 @@ void processingComingMsg(uint8_t *Msg, uint16_t Msg_len, uint8_t stID)
 					// set synchronize sensor flag
 					sync_flag = 1;
 
+					myStation.alarmtime.hour = tmpRTC.Hour;
+					myStation.alarmtime.min = tmpRTC.Min;
+					myStation.alarmtime.sec = tmpRTC.Sec;
+
 					//
 					triggerTaskflag(TASK_GET_GPS_TIME, FLAG_EN);
 					// Set alarm for synchronize
 					DS3231_ClearAlarm1();
-					DS3231_SetAlarm1(ALARM_MODE_ALL_MATCHED, tmpRTC.Date, tmpRTC.Hour, tmpRTC.Min, tmpRTC.Sec);
+					DS3231_SetAlarm1(ALARM_MODE_HOUR_MIN_SEC_MATCHED, tmpRTC.Date, tmpRTC.Hour, tmpRTC.Min, tmpRTC.Sec);
 					break;
 				default:
 					break;
