@@ -158,7 +158,7 @@ void SIM_callback(uint16_t Size);
 
 void enableReceiveDMAtoIdle_SIM(void);
 
-SIM_res_t SIM_sendCMD(uint8_t *cmd, uint8_t *checkResMsg, uint8_t CheckResENorDIS, uint8_t ENorDISmarkasread,uint32_t timeout);
+SIM_res_t SIM_sendCMD(const char *cmd, uint8_t *checkResMsg, uint8_t CheckResENorDIS, uint8_t ENorDISmarkasread,uint32_t timeout);
 
 SIM_res_t SIM_checkMsg(uint8_t *Msg, uint16_t timeout);
 

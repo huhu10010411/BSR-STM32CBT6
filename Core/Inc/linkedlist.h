@@ -34,16 +34,17 @@ typedef enum {
 typedef struct{
 	uint8_t  	SSnode_ID;          // Sensor node ID
 	uint8_t    Battery;
-	voltage_t		V_type;				// Voltage type
 	uint16_t volatile V_value;			// Voltage value
+	voltage_t		V_type;				// Voltage type
 	sensor_state_t	Sensor_state;
+	uint32_t tickupdate;
 	volatile uint8_t dataCalibAvailable;
 	uint8_t Ready : 1;
 	volatile sensor_mode_t sensorMode;
 	uint8_t dataCalibBuffer[DATACALIB_SIZE];
 }SensorNode_t;
 
-#define SENSORNODE_T_INIT 	{0, 0, V_p, 0, SENSOR_ACTIVE, 0, 0, SLEEP}
+#define SENSORNODE_T_INIT 	{0, 0,  0, V_p, SENSOR_ACTIVE, 0, 0, 0, SLEEP}
 
 typedef struct Node {
 	SensorNode_t  SSnode;

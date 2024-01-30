@@ -39,7 +39,7 @@
 
 #define PACKBUFF_MAXLEN		256
 
-extern uint8_t Pack_buff [PACKBUFF_MAXLEN];
+
 
 typedef enum {
 	RES_OK = 0x01,

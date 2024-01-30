@@ -375,8 +375,8 @@ int main(void)
 //    DS3231_SetAlarm1(ALARM_MODE_HOUR_MIN_SEC_MATCHED, myRTC.Date, myRTC.Hour, myRTC.Min, myRTC.Sec + 5);
 //	myRTC.Year = 24;
 //	myRTC.Month = 1;
-//	myRTC.Date = 21;
-//	myRTC.DaysOfWeek = 1;
+//	myRTC.Date = 23;
+//	myRTC.DaysOfWeek = 3;
 //	myRTC.Hour = 23;
 //	myRTC.Min = 59;
 //	myRTC.Sec = 59;
@@ -496,7 +496,7 @@ static void ADC_Convert(uint32_t volatile *adcval, uint8_t CurorVol)
 
 	case 1:
 		if (adccount1 == 1000)	{
-			myStation.stVoltage = (uint16_t)( ( *adcval)*3/68*1568/4095 );
+			myStation.stVoltage = (uint16_t)( ( *adcval)*3/68*1568/4095 + 1204);
 //			myStation.stVoltage = (uint16_t)( ( ( (*adcval)*3/4095) ));
 			*adcval = 0;
 			adccount1 = 0;

@@ -9,7 +9,7 @@
 #define INC_MQTT_H_
 
 #include "stm32f1xx.h"
-#include "SIM.h"
+//#include "SIM.h"
 
 #define TOPIC_PUB		"BSR/STATION2SERVER"
 #define TOPIC_SUB		"BSR/SERVER2STATION/"
@@ -17,7 +17,7 @@
 
 #define MQTT_TXBUFF_SIZE   256
 
-extern uint8_t MQTT_Txbuff [MQTT_TXBUFF_SIZE];
+
 
 typedef enum {
 	CONTENT_TOPIC,

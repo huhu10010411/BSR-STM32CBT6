@@ -155,6 +155,7 @@ void Lora_receive(uint8_t *Msg, uint8_t msglen)
 		triggerTaskflag(TASK_REGISTER, FLAG_EN);
 		SensorNode_t newSensor = SENSORNODE_T_INIT;
 		newSensor.SSnode_ID = id;
+		newSensor.tickupdate = HAL_GetTick();
 		switch (flag)	{
 		case 1:
 			newSensor.sensorMode = modevalue;
@@ -210,6 +211,7 @@ void Lora_receive(uint8_t *Msg, uint8_t msglen)
 				default:
 					break;
 				}
+				current->SSnode.tickupdate = HAL_GetTick();
 				return;
 			}
 			current = current->next;

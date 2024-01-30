@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "MQTT.h"
-#include "Serial_log.h"
+//#include "Serial_log.h"
 #include "String_process.h"
 #include "Validation.h"
 #include "Task.h"
@@ -47,6 +47,8 @@ uint8_t getSMS = 0;
 uint16_t SMS_len = 0;
 //uint8_t connlost = 0;
 
+
+extern uint8_t MQTT_Txbuff [MQTT_TXBUFF_SIZE];
 
 
 void initSIM()
@@ -172,11 +174,12 @@ SIM_res_t SIM_checkMsg(uint8_t *Msg, uint16_t timeout)
  	return res;
 }
 
-SIM_res_t SIM_sendCMD(uint8_t *cmd, uint8_t *checkResMsg, uint8_t CheckResENorDIS, uint8_t ENorDISmarkasread, uint32_t timeout)
+SIM_res_t SIM_sendCMD(const char *cmd, uint8_t *checkResMsg, uint8_t CheckResENorDIS, uint8_t ENorDISmarkasread, uint32_t timeout)
 {
-	uint8_t SIM_Txbuff[256];
-	uint8_t len = sprintf( (char*)SIM_Txbuff, "%s\r\n", cmd);
-	HAL_UART_Transmit(SIM_UART, SIM_Txbuff, len, 0xFFFF) ;
+	uint8_t SIM_Txbuff[512];
+	memset(SIM_Txbuff, 0, 512);
+	uint16_t len = sprintf( (char*)SIM_Txbuff, "%s\r\n", cmd);
+	HAL_UART_Transmit(SIM_UART, SIM_Txbuff, len + 1, 0xFFFF) ;
 
 	if (CheckResENorDIS == ENABLE_SIM_CHECKRES)
 	{
@@ -185,9 +188,6 @@ SIM_res_t SIM_sendCMD(uint8_t *cmd, uint8_t *checkResMsg, uint8_t CheckResENorDI
 		{
 			MarkAsReadData_SIM();
 		}
-//		Serial_log_string("Res of CMD: ");
-//		Serial_log_buffer(cmd, len);
-//		Serial_log_number(res);
 		return res;
 	}
 	return SIM_NO_RES;
@@ -204,13 +204,13 @@ uint8_t SIM_checkCMD (SIM_CMD_t cmd)
 	switch (cmd) {
 		case SIM_CMD_SIMCARD_PIN:
 
-			if ( SIM_sendCMD( (uint8_t*)"AT+CPIN?", (uint8_t*)"+CPIN: READY", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_SHORT) == SIM_RES_MSG ) {
+			if ( SIM_sendCMD( "AT+CPIN?", (uint8_t*)"+CPIN: READY", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_SHORT) == SIM_RES_MSG ) {
 				res = 1;
 //				Serial_log_string("SIM card READY\r\n");
 			}
 			break;
 		case SIM_CMD_NW_CPSI:
-			if ( SIM_sendCMD( (uint8_t*)"AT+CPSI?", (uint8_t*)"+CPSI: NO SERVICE", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_SHORT) == SIM_RES_MSG ) {
+			if ( SIM_sendCMD("AT+CPSI?", (uint8_t*)"+CPSI: NO SERVICE", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_SHORT) == SIM_RES_MSG ) {
 //				Serial_log_string("NO SERVICE, network status has some problem");
 			}
 			else {
@@ -219,7 +219,7 @@ uint8_t SIM_checkCMD (SIM_CMD_t cmd)
 			}
 			break;
 		case SIM_CMD_NW_CREG:
-			if ( SIM_sendCMD( (uint8_t*)"AT+CREG?", (uint8_t*)"+CREG: 0,1", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_SHORT) == SIM_RES_MSG ) {
+			if ( SIM_sendCMD( "AT+CREG?", (uint8_t*)"+CREG: 0,1", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_SHORT) == SIM_RES_MSG ) {
 				res = 1;
 //				Serial_log_string("Module is registered to CS domain\r\n");
 			}
@@ -228,7 +228,7 @@ uint8_t SIM_checkCMD (SIM_CMD_t cmd)
 
 			break;
 		case SIM_CMD_STA_CSQ:
-			if ( SIM_sendCMD( (uint8_t*)"AT+CSQ", (uint8_t*)"+CSQ: 99", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_SHORT) == SIM_RES_MSG ) {
+			if ( SIM_sendCMD( "AT+CSQ", (uint8_t*)"+CSQ: 99", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_SHORT) == SIM_RES_MSG ) {
 //				Serial_log_string("Signal quality is bad, please check SIM card or reboot the module\r\n");
 			}
 			else {
@@ -244,7 +244,7 @@ uint8_t SIM_checkCMD (SIM_CMD_t cmd)
 
 void SIM_checkOperation(void)
 {
-		 SIM_sendCMD((uint8_t*)"AT+CMGL=\"REC UNREAD\"", (uint8_t*)"OK",
+		 SIM_sendCMD("AT+CMGL=\"REC UNREAD\"", (uint8_t*)"OK",
 				 ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, 1000);
 
 }
@@ -513,10 +513,10 @@ static uint8_t SMS_checkCMD(uint8_t *contentbuffer, uint16_t contentlen, uint8_t
 
 uint8_t SMS_read()
 {
-	SIM_sendCMD((uint8_t*)"AT+CMGF=1", (uint8_t*)"OK", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_SHORT);
-	if ( SIM_sendCMD((uint8_t*)"AT+CMGL=\"REC UNREAD\"", (uint8_t*)"OK",ENABLE_SIM_CHECKRES,
+	SIM_sendCMD("AT+CMGF=1", (uint8_t*)"OK", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_SHORT);
+	if ( SIM_sendCMD("AT+CMGL=\"REC UNREAD\"", (uint8_t*)"OK",ENABLE_SIM_CHECKRES,
 			ENABLE_MARKASREAD, 1000) != SIM_RES_MSG )	{
-		if ( SIM_sendCMD((uint8_t*)"AT+CMGL=\"REC UNREAD\"", (uint8_t*)"OK",ENABLE_SIM_CHECKRES,
+		if ( SIM_sendCMD("AT+CMGL=\"REC UNREAD\"", (uint8_t*)"OK",ENABLE_SIM_CHECKRES,
 					ENABLE_MARKASREAD, 1000) != SIM_RES_MSG )
 		newSMS = 0;
 		return 0;
@@ -526,7 +526,7 @@ uint8_t SMS_read()
 
 uint8_t SMS_readAgain(uint8_t SMSindex)
 {
-	uint8_t SIM_Txbuff[100];
+	char SIM_Txbuff[100];
 	sprintf((char*)SIM_Txbuff, "AT+CMGR=%d",SMSindex);
 	if  ( SIM_sendCMD(SIM_Txbuff, (uint8_t*)"OK",ENABLE_SIM_CHECKRES,
 					  ENABLE_MARKASREAD, 1000) != SIM_RES_MSG)	{
@@ -560,7 +560,7 @@ uint8_t processingSMS(void)
 	//Get phone number
 	uint8_t phonenumb[PHONENUMB_LEN];
 	if ( !SMS_getPhonenumb(SMS_Rxbuff, SMS_len, phonenumb) ) {
-		SIM_sendCMD((uint8_t*)"AT+CMGD=1,1", (uint8_t*)"OK",
+		SIM_sendCMD("AT+CMGD=1,1", (uint8_t*)"OK",
 					ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, 1000);
 		newSMS = 0;
 		return 0;
@@ -571,7 +571,7 @@ uint8_t processingSMS(void)
 	uint16_t contentlen = SMS_getContent(SMS_Rxbuff, SMS_len, tmpSMSdatabuffer);
 //	MQTT_publish((uint8_t*)TOPIC_PUB , tmpSMSdatabuffer, contentlen);
 	if ( !contentlen)	{
-		SIM_sendCMD((uint8_t*)"AT+CMGD=1,1", (uint8_t*)"OK",
+		SIM_sendCMD("AT+CMGD=1,1", (uint8_t*)"OK",
 					ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, 1000);
 		newSMS = 0;
 		return 0;
@@ -579,7 +579,7 @@ uint8_t processingSMS(void)
 	//Check SMS command
 	uint8_t checkres = SMS_checkCMD(tmpSMSdatabuffer, contentlen, phonenumb);
 	if ( !checkres ) 	{
-		SIM_sendCMD((uint8_t*)"AT+CMGD=1,1", (uint8_t*)"OK",
+		SIM_sendCMD("AT+CMGD=1,1", (uint8_t*)"OK",
 					ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, 1000);
 		newSMS = 0;
 		return 0;
@@ -587,7 +587,7 @@ uint8_t processingSMS(void)
 //	if ( checkres == 2 )	{
 //		readagain = 1;
 //	}
-	SIM_sendCMD((uint8_t*)"AT+CMGD=1,1", (uint8_t*)"OK",
+	SIM_sendCMD("AT+CMGD=1,1", (uint8_t*)"OK",
 				ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, 1000);
 	newSMS = 0;
 
@@ -741,7 +741,7 @@ uint8_t SMS_sendMsg(uint8_t *Msg, uint16_t msglen, uint8_t *phonenumber )
 	if ( !SMS_config() )	return 0;
 	uint8_t SIM_Txbuff[128];
 	sprintf((char*)SIM_Txbuff, "AT+CMGS=\"%s\"", phonenumber);
-	if ( SIM_sendCMD(SIM_Txbuff, (uint8_t*)">", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_MEDIUM) != SIM_RES_MSG)	return 0;
+	if ( SIM_sendCMD((char*)SIM_Txbuff, (uint8_t*)">", ENABLE_SIM_CHECKRES, ENABLE_MARKASREAD, SIM_TIMEOUT_MEDIUM) != SIM_RES_MSG)	return 0;
 
 	Msg[msglen++] = 0x1A;
 //	sprintf(SIM_Txbuff, "%s", Msg);

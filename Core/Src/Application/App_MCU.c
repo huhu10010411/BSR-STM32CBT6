@@ -18,8 +18,8 @@
 
 //static SIM_t *mySIM;
 
-#define TIMEOUT_WAIT_DATACALIB		100000            //100s
-
+//#define TIMEOUT_WAIT_DATACALIB		100000            //100s
+#define SENSOR_3_PERIOD_OF_UPDATE		300000
 
 uint32_t tick = 0;
 uint32_t NWRDtick = 0;
@@ -34,11 +34,23 @@ void initApp_MCU()
 //	mySIM = mySIM;
 }
 
-void setSensorMode (sensor_mode_t mode)
+//void setSensorMode (sensor_mode_t mode)
+//{
+//	Node * current =myStation.ssNode_list->head->next;
+//		while (current != myStation.ssNode_list->tail)	{
+//			if (current->SSnode.sensorMode == mode ) 	{
+//			}
+//			current = current->next;
+//		}
+//}
+
+void updateSensorStatus()
 {
+	uint32_t tickcur = HAL_GetTick();
 	Node * current =myStation.ssNode_list->head->next;
 		while (current != myStation.ssNode_list->tail)	{
-			if (current->SSnode.sensorMode == mode ) 	{
+			if (tickcur - current->SSnode.tickupdate > SENSOR_3_PERIOD_OF_UPDATE) 	{
+				current->SSnode.Sensor_state = SENSOR_DEACTIVE;
 			}
 			current = current->next;
 		}
